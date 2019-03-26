@@ -1,5 +1,7 @@
+# Load match level data ---------------------------------------------------
+
 cricsheet_ipl_load_meta <- function(input_file) {
-  
+
   # Assign the match id based on the file name
   match_id <- str_extract(input_file, "[0-9]+")
   match_id <- parse_integer(match_id)
@@ -9,15 +11,15 @@ cricsheet_ipl_load_meta <- function(input_file) {
   input_data <- yaml.load_file(input_file)
   
   # Metadata table
-  meta_version <- input_data$meta$data_version
-  meta_created <- ymd(input_data$meta$created)
-  meta_revision <- input_data$meta$revision
-  metadata <- tibble(
-    id = match_id,
-    version = meta_version,
-    created = meta_created,
-    revision = meta_revision
-  )
+  # meta_version <- input_data$meta$data_version
+  # meta_created <- ymd(input_data$meta$created)
+  # meta_revision <- input_data$meta$revision
+  # metadata <- tibble(
+  #   id = match_id,
+  #   version = meta_version,
+  #   created = meta_created,
+  #   revision = meta_revision
+  # )
   
   # Match information table
   info <- input_data$info
@@ -92,9 +94,9 @@ cricsheet_ipl_load_meta <- function(input_file) {
   )
 
   # Return a list of tables
-  retlist <- list(metadata = metadata, match_info = match_info,
-                  match_teams = match_teams, match_toss = match_toss,
-                  match_umpires = match_umpires, match_outcome = match_outcome)
+  retlist <- list(match_info = match_info, match_teams = match_teams,
+                  match_toss = match_toss, match_umpires = match_umpires,
+                  match_outcome = match_outcome)
   return(retlist)
 }
 
@@ -103,33 +105,26 @@ filenames <- list.files("data", pattern = "*.yaml", full.names = TRUE)
 ipl_data <- map(filenames, cricsheet_ipl_load_meta)
 
 # Store all the data as individual data frames
-ret_table <- function(x, table) {
-  return(x[[table]])
-}
-temp <- map(ipl_data, ret_table, "metadata")
-metadata <- bind_rows(temp)
-temp <- map(ipl_data, ret_table, "match_info")
-match_info <- bind_rows(temp)
-temp <- map(ipl_data, ret_table, "match_teams")
-match_teams <- bind_rows(temp)
-temp <- map(ipl_data, ret_table, "match_toss")
-match_toss <- bind_rows(temp)
-temp <- map(ipl_data, ret_table, "match_umpires")
-match_umpires <- bind_rows(temp)
-temp <- map(ipl_data, ret_table, "match_outcome")
-match_outcome <- bind_rows(temp)
+table_names <- c("match_info", "match_teams", "match_toss",
+                 "match_umpires", "match_outcome")
+map(table_names, function(x) {
+  temp <- map(ipl_data, extract2, x)
+  assign(x, bind_rows(temp), pos = 1)
+})
 
 # Clean up
-rm(temp)
+rm(table_names)
 rm(ipl_data)
 rm(filenames)
+
+# Load ball by ball data --------------------------------------------------
 
 process_delivery <- function(delivery) {
   delivery_name <- names(delivery)
   delivery_double <- as.double(delivery_name)
   
-  delivery_over <- trunc(delivery_double) + 1
-  delivery_ball <- (delivery_double - trunc(delivery_double)) * 10
+  delivery_over <- trunc(delivery_double)
+  delivery_ball <- round((delivery_double - trunc(delivery_double)) * 10)
   
   delivery_batsman <- delivery[[delivery_name]]$batsman
   delivery_non_striker <- delivery[[delivery_name]]$non_striker
@@ -240,15 +235,13 @@ filenames <- list.files("data", pattern = "*.yaml", full.names = TRUE)
 ipl_data <- map(filenames, cricsheet_ipl_load_innings)
 
 # Store all the data as individual data frames
-ret_table <- function(x, table) {
-  return(x[[table]])
-}
-temp <- map(ipl_data, ret_table, "match_innings")
-match_innings <- bind_rows(temp)
-temp <- map(ipl_data, ret_table, "match_deliveries")
-match_deliveries <- bind_rows(temp)
+table_names <- c("match_innings", "match_deliveries")
+map(table_names, function(x) {
+  temp <- map(ipl_data, extract2, x)
+  assign(x, bind_rows(temp), pos = 1)
+})
 
 # Clean up
-rm(temp)
+rm(table_names)
 rm(ipl_data)
 rm(filenames)
