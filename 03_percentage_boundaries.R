@@ -57,9 +57,35 @@ batsmen_match_runs <- batsmen_match_details %>%
       TRUE ~ 0L
     )
   ) %>%
-  select(id, innings_num, delivery_runs_batsman,
+  select(id, innings_num, delivery_batsman, delivery_runs_batsman,
          runs_boundary, runs_non_boundary)
-sum(with(
+nrow(subset(
   batsmen_match_runs,
-  delivery_runs_batsman == sum(runs_boundary, runs_non_boundary)
+  delivery_runs_batsman != runs_boundary + runs_non_boundary
 ))
+
+# Calculate totals for each batsmen
+batsmen_runs_summary <- batsmen_match_runs %>%
+  group_by(delivery_batsman) %>%
+  summarise(
+    delivery_runs_batsman = sum(delivery_runs_batsman),
+    runs_boundary = sum(runs_boundary),
+    runs_non_boundary = sum(runs_non_boundary)
+  ) %>%
+  ungroup() %>%
+  arrange(desc(delivery_runs_batsman))
+nrow(subset(
+  batsmen_runs_summary,
+  delivery_runs_batsman != runs_boundary + runs_non_boundary
+))
+quantile(batsmen_runs_summary$delivery_runs_batsman, probs = seq(0, 1, 0.1))
+batsmen_runs_summary <- batsmen_runs_summary %>%
+  filter(delivery_runs_batsman > 1000)
+nrow(batsmen_runs_summary)
+
+# Calculate percentage scored in boundaries
+batsmen_runs_summary <- batsmen_runs_summary %>%
+  mutate(runs_boundary_pct = runs_boundary / delivery_runs_batsman)
+summary(batsmen_runs_summary$runs_boundary_pct)
+ggplot(batsmen_runs_summary, aes(runs_boundary_pct)) +
+  geom_histogram(binwidth = 0.05)
