@@ -1,8 +1,8 @@
 ---
 meta:
   data_version: 0.9
-  created: 2017-12-30
-  revision: 2
+  created: 2017-04-08
+  revision: 1
 info:
   city: Bangalore
   competition: IPL
@@ -23,10 +23,10 @@ info:
   toss:
     decision: bat
     winner: Royal Challengers Bangalore
-  umpires:
-    - Sundaram Ravi
-    - Virender Sharma
   venue: M Chinnaswamy Stadium
+  umpires:
+  - VK Sharma
+  - S Ravi
 innings:
   - 1st innings:
       team: Royal Challengers Bangalore
