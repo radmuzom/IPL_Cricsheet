@@ -83,9 +83,32 @@ batsmen_runs_summary <- batsmen_runs_summary %>%
   filter(delivery_runs_batsman > 1000)
 nrow(batsmen_runs_summary)
 
-# Calculate percentage scored in boundaries
+# Calculate percentage scored in boundaries for batsman's IPL career
 batsmen_runs_summary <- batsmen_runs_summary %>%
-  mutate(runs_boundary_pct = runs_boundary / delivery_runs_batsman)
+  mutate(runs_boundary_pct = runs_boundary / delivery_runs_batsman) %>%
+  arrange(desc(runs_boundary_pct))
 summary(batsmen_runs_summary$runs_boundary_pct)
 ggplot(batsmen_runs_summary, aes(runs_boundary_pct)) +
   geom_histogram(binwidth = 0.05)
+
+# Calculate percentage scored in boundaries for batsman by match
+# Only consider innings which lasted at least 10 balls and by batsmen who
+# have scored at least 1000 runs
+batsmen_match_summary <- batsmen_match_runs %>%
+  inner_join(
+    select(batsmen_runs_summary, delivery_batsman),
+    by = c("delivery_batsman" = "delivery_batsman")
+  ) %>%
+  group_by(delivery_batsman, id) %>%
+  summarise(
+    n_balls = n(),
+    delivery_runs_batsman = sum(delivery_runs_batsman),
+    runs_boundary = sum(runs_boundary),
+    runs_non_boundary = sum(runs_non_boundary)
+  ) %>%
+  ungroup() %>%
+  mutate(runs_boundary_pct = if_else(delivery_runs_batsman > 0,
+                                     runs_boundary / delivery_runs_batsman,
+                                     0)) %>%
+  filter(n_balls >= 10) %>%
+  arrange(delivery_batsman, desc(runs_boundary_pct))
