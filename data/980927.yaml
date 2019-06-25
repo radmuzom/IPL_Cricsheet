@@ -2,7 +2,7 @@
 meta:
   data_version: 0.9
   created: 2016-04-20
-  revision: 1
+  revision: 2
 info:
   city: Mumbai
   competition: IPL
@@ -1957,10 +1957,12 @@ innings:
         - 16.6:
             batsman: KA Pollard
             bowler: KW Richardson
+            extras:
+              legbyes: 1
             non_striker: HH Pandya
             runs:
-              batsman: 1
-              extras: 0
+              batsman: 0
+              extras: 1
               total: 1
         - 17.1:
             batsman: KA Pollard
