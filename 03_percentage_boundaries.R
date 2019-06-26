@@ -108,25 +108,19 @@ ggplot(batsmen_runs_summary,
     axis.title = element_text(size = 10),
     axis.text = element_text(size = 10)
   )
-
-# Calculate percentage scored in boundaries for batsman by match
-# Only consider innings which lasted at least 10 balls and by batsmen who
-# have scored at least 1000 runs
-batsmen_match_summary <- batsmen_match_runs %>%
-  inner_join(
-    select(batsmen_runs_summary, delivery_batsman),
-    by = c("delivery_batsman" = "delivery_batsman")
-  ) %>%
-  group_by(delivery_batsman, id) %>%
-  summarise(
-    n_balls = n(),
-    delivery_runs_batsman = sum(delivery_runs_batsman),
-    runs_boundary = sum(runs_boundary),
-    runs_non_boundary = sum(runs_non_boundary)
-  ) %>%
-  ungroup() %>%
-  mutate(runs_boundary_pct = if_else(delivery_runs_batsman > 0,
-                                     runs_boundary / delivery_runs_batsman,
-                                     0)) %>%
-  filter(n_balls >= 10) %>%
-  arrange(delivery_batsman, desc(runs_boundary_pct))
+ggplot(batsmen_runs_summary,
+       aes(reorder(delivery_batsman, runs_boundary_pct),
+           runs_boundary_pct)) +
+  geom_point(colour = "blue") +
+  scale_y_continuous(labels = scales::percent) +
+  xlab(NULL) +
+  ylab("% Runs (Boundaries)") +
+  theme_bw() +
+  theme(
+    panel.border = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 10)
+  ) +
+  coord_flip()
