@@ -68,6 +68,7 @@ nrow(subset(
 batsmen_runs_summary <- batsmen_match_runs %>%
   group_by(delivery_batsman) %>%
   summarise(
+    n_balls = n(),
     delivery_runs_batsman = sum(delivery_runs_batsman),
     runs_boundary = sum(runs_boundary),
     runs_non_boundary = sum(runs_non_boundary)
@@ -85,11 +86,28 @@ nrow(batsmen_runs_summary)
 
 # Calculate percentage scored in boundaries for batsman's IPL career
 batsmen_runs_summary <- batsmen_runs_summary %>%
-  mutate(runs_boundary_pct = runs_boundary / delivery_runs_batsman) %>%
+  mutate(runs_boundary_pct = runs_boundary / delivery_runs_batsman,
+         career_strike_rate = delivery_runs_batsman / n_balls) %>%
   arrange(desc(runs_boundary_pct))
 summary(batsmen_runs_summary$runs_boundary_pct)
 ggplot(batsmen_runs_summary, aes(runs_boundary_pct)) +
   geom_histogram(binwidth = 0.05)
+ggplot(batsmen_runs_summary,
+       aes(runs_boundary_pct, career_strike_rate)) +
+  geom_point(colour = "blue") +
+  geom_smooth(method = "lm", se = FALSE, alpha = 0.1, colour = "black") +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  xlab("% Runs (Boundaries)") +
+  ylab("IPL Career Strike Rate") +
+  theme_bw() +
+  theme(
+    panel.border = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(size = 20, hjust = 0.5, vjust = 0.5),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 10)
+  )
 
 # Calculate percentage scored in boundaries for batsman by match
 # Only consider innings which lasted at least 10 balls and by batsmen who
